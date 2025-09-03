@@ -2,21 +2,20 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven3'
+        maven 'maven'
         jdk 'jdk17'
         // Remove the sonarQube line if it still causes issues
     }
 
     environment {
-        SCANNER_HOME = tool 'sonar-scanner'
-        DOCKERHUB_USERNAME = 'kastrov'  // Set this directly to your Docker Hub username
-        DOCKER_IMAGE = "${DOCKERHUB_USERNAME}/spotify-app:latest"
+        DOCKERHUB_USERNAME = 'laxminarayandev'  // Set this directly to your Docker Hub username
+        DOCKER_IMAGE = "${DOCKERHUB_USERNAME}/webapp:latest"
     }
 
     stages {
         stage('Git Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/KastroVKiran/SonarQube-Project-Kastro.git'
+                git branch: 'main', url: 'https://github.com/laxminarayan183/Jenkins-Sonarqube-Docker.git'
             }
         }
 
@@ -33,11 +32,16 @@ pipeline {
         }
 
         stage('Sonar Analysis') {
-            steps {
-                withSonarQubeEnv('sonar-server') {
-                    sh "$SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Kastro -Dsonar.projectKey=KastroKey -Dsonar.java.binaries=target"
+              steps {
+                withSonarQubeEnv(credentialsId: 'sonar-token',installationName:'sonar') {
+                    sh '''
+                         mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=webapp \
+                        -Dsonar.host.url=http://192.168.200.128:9000 \
+                        -Dsonar.login=sqp_f50b45b3e3f164a08d1ca8aa6dab240369792cc4
+                   '''
+                    }
                 }
-            }
         }
 
         stage('Build') {
@@ -54,11 +58,22 @@ pipeline {
                 }
             }
         }
+        stage('Run Docker Container') {
+            steps {
+                script {
+                    // Stop any existing container with the same name
+                    sh "docker stop webapp || true && docker rm webapp || true"
+                    
+                    // Running the container
+                    sh "docker run -d --name webapp -p 5555:5555 $DOCKER_IMAGE"
+                }
+            }
+        }
 
         stage('Docker Push to DockerHub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-token', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
                         echo "Docker Hub Username: ${DOCKERHUB_USERNAME}"  // Check the username
                         echo "Docker Image: ${DOCKER_IMAGE}"  // Check the image
                         sh "docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_PASSWORD}"
@@ -68,17 +83,7 @@ pipeline {
             }
         }
 
-        stage('Run Docker Container') {
-            steps {
-                script {
-                    // Stop any existing container with the same name
-                    sh "docker stop spotify-app || true && docker rm spotify-app || true"
-                    
-                    // Running the container
-                    sh "docker run -d --name spotify-app -p 5555:5555 $DOCKER_IMAGE"
-                }
-            }
-        }
+        
     }
 
     post {
@@ -88,3 +93,4 @@ pipeline {
         }
     }
 }
+
