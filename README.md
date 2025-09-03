@@ -91,3 +91,14 @@ Token: squ_983573f5ed8baca362ba501ad6e04b3e70c23093
 - Manage Jenkins --- System --- Scroll down to 'SonarQube servers' --- Click on 'Add SonarQube' --- Name: sonar-server --- ServerURL:   <PublicIPofSQinstalledVM>:9000 --- Server Authentication Token: select 'sonar-token' --- Apply --- Save
 
 - step 7 - create pipeline
+  
+- jenkins Pipline
+  <img width="1849" height="727" alt="docker-sonar" src="https://github.com/user-attachments/assets/e48a5565-b578-4c78-82da-5ea53ebfd977" />
+  
+- Sonarqube Dashboard
+  <img width="1846" height="732" alt="sonar" src="https://github.com/user-attachments/assets/1defee49-8070-428c-9fc1-6b2d7b845bcb" />
+
+- Docker Image
+  <img width="1850" height="853" alt="docker-cont" src="https://github.com/user-attachments/assets/fd9ed351-14b8-43bb-9bdb-836f3db80067" />
+
+  
